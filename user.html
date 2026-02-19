@@ -1,0 +1,236 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>OMPI — Abertura Rápida</title>
+	<style>
+		/* Consolidated industrial style (from user.css + site) */
+		:root{ --bg:#0f1720; --panel:#0f1728; --muted:#9aa4b2; --accent:#4f7bd6; --accent-2:#f28a30; --card:#0b1220; --ok:#2aa56a; }
+		html,body{height:100%;margin:0;font-family:Inter,Segoe UI,system-ui,Arial;background:linear-gradient(180deg,#071026 0%,#071827 100%);color:#e6eef8}
+		.user-wrap{max-width:980px;margin:36px auto;padding:20px}
+		.user-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+		.brand{display:flex;gap:14px;align-items:center}
+		.brand h1{margin:0;font-size:20px;letter-spacing:0.6px}
+		.quick-actions{display:flex;gap:10px}
+		.qa-btn{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:10px;border-radius:8px;color:var(--muted);cursor:pointer}
+		.qa-btn:hover{border-color:rgba(255,255,255,0.12);color:#fff}
+
+		/* modal/form */
+		.modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
+		.modal.hidden{display:none}
+		.modal-panel{background:linear-gradient(180deg,#071428,#08182a);padding:18px;border-radius:10px;min-width:320px;color:#dfe9f8;border:1px solid rgba(255,255,255,0.04)}
+		form label{display:block;font-size:13px;margin-bottom:8px;color:var(--muted)}
+		input,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#eaf2ff;margin-top:6px}
+		/* make select dropdown text readable: dark text on light background */
+		select{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(0,0,0,0.08);background:#fff;color:#0b1220;margin-top:6px}
+		select option{color:#0b1220;background:#fff}
+		.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+		.btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+		.btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+
+		/* acompanhamento */
+		.follow-area{margin-top:20px}
+		.follow-title{font-size:16px;color:#cfe3ff;margin-bottom:8px}
+		.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+		.card{background:linear-gradient(180deg,#071825,#06202d);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+		.card .id{font-weight:700;color:var(--accent-2)}
+		.meta{font-size:13px;color:var(--muted);margin-top:6px}
+		.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;color:#fff}
+		.badge.pending{background:#6b7280} /* gray */
+		.badge.doing{background:var(--accent)} /* blue */
+		.badge.done{background:var(--ok)} /* green */
+
+		footer{margin-top:26px;font-size:12px;color:var(--muted)}
+		@media (max-width:560px){ .user-header{flex-direction:column;align-items:flex-start;gap:12px} }
+	</style>
+</head>
+<body>
+	<main class="user-wrap">
+		<header class="user-header">
+			<div class="brand">
+				<svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="10" fill="#18486d"/></svg>
+				<div>
+					<h1>OMPI</h1>
+					<p style="margin:0;color:var(--muted);font-size:13px">Abertura Rápida de Chamados</p>
+				</div>
+			</div>
+
+			<div class="quick-actions" aria-label="Ações rápidas">
+				<button class="qa-btn" data-action="impressora" title="Impressora">Impressora</button>
+				<button class="qa-btn" data-action="mouse" title="Mouse">Mouse</button>
+				<button class="qa-btn" data-action="senha" title="Senha">Senha</button>
+				<button class="qa-btn" data-action="rede" title="Rede">Rede</button>
+			</div>
+		</header>
+
+		<!-- Add modal (formulário de abertura) -->
+		<div id="addModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+			<div class="modal-panel">
+				<h2 id="addTitle">Novo Chamado</h2>
+				<form id="addForm">
+					<label>Solicitante
+						<input id="author" type="text" placeholder="Seu nome" />
+					</label>
+
+					<label>Setor
+						<select id="setor" required>
+							<option value="">-- Escolha --</option>
+							<option value="Producao A">Produção A</option>
+							<option value="Producao B">Produção B</option>
+							<option value="ADM">ADM</option>
+							<option value="Almoxarifado">Almoxarifado</option>
+						</select>
+					</label>
+
+					<label>Categoria
+						<select id="issueType">
+							<option value="">-- Escolha --</option>
+							<option value="impressora">Impressora</option>
+							<option value="mouse">Mouse</option>
+							<option value="senha">Senha</option>
+							<option value="rede">Rede</option>
+							<option value="outro">Outro</option>
+						</select>
+					</label>
+
+					<label id="otherLabel" class="hidden">Descreva (Outro)
+						<input id="otherText" placeholder="Descreva o problema" />
+					</label>
+
+					<label>Prioridade
+						<select id="priority">
+							<option value="normal">Normal</option>
+							<option value="alta">Alta</option>
+							<option value="baixa">Baixa</option>
+						</select>
+					</label>
+
+					<label>Descrição
+						<textarea id="description" rows="3" placeholder="Informações adicionais (opcional)"></textarea>
+					</label>
+
+					<div class="modal-actions">
+						<button type="button" id="cancelAdd" class="btn ghost">Cancelar</button>
+						<button type="submit" class="btn">Criar chamado</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<div class="controls" style="margin-top:12px">
+			<button id="addBtn" class="btn">Adicionar chamado</button>
+		</div>
+
+		<!-- Acompanhamento em Tempo Real -->
+		<section class="follow-area">
+			<div class="follow-title">Acompanhamento em Tempo Real</div>
+			<div id="cards" class="cards" aria-live="polite"></div>
+		</section>
+
+		<footer>
+			<small>Dica: abra o dashboard técnico em outra aba para testar movimentação de chamados ao vivo.</small>
+		</footer>
+	</main>
+
+	<script>
+		// Consolidated JS for user page
+		(function(){
+			const STORAGE_KEY = 'ompi_chamados_db';
+			const qaButtons = document.querySelectorAll('.qa-btn');
+			const modal = document.getElementById('addModal');
+			const addForm = document.getElementById('addForm');
+			const cancelBtn = document.getElementById('cancelAdd');
+			const issueType = document.getElementById('issueType');
+			const otherLabel = document.getElementById('otherLabel');
+			const cardsRoot = document.getElementById('cards');
+
+			function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+			function load(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): []; }catch(e){ return []; } }
+			function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+			// current user from login (ompi_current_user) or fallback to stored name
+			function currentUser(){ return localStorage.getItem('ompi_current_user') || localStorage.getItem('ompi_user_name') || ''; }
+
+			const presets = {
+				impressora: { categoria: 'Impressora', descricao: 'Impressora não imprime / papel atolado', prioridade: 'alta' },
+				mouse: { categoria: 'Mouse', descricao: 'Mouse sem resposta', prioridade: 'normal' },
+				senha: { categoria: 'Senha', descricao: 'Senha expirada / recuperação', prioridade: 'alta' },
+				rede: { categoria: 'Rede', descricao: 'Sem conectividade', prioridade: 'alta' }
+			};
+
+			qaButtons.forEach(btn=> btn.addEventListener('click', ()=>{
+				const a = btn.dataset.action; const p = presets[a];
+				modal.classList.remove('hidden');
+				const saved = currentUser(); if(saved) document.getElementById('author').value = saved;
+				document.getElementById('issueType').value = (p? p.categoria.toLowerCase() : '');
+				document.getElementById('description').value = p? p.descricao : '';
+				document.getElementById('priority').value = p? p.prioridade : 'normal';
+				if(!p) otherLabel.classList.remove('hidden'); else otherLabel.classList.add('hidden');
+			}));
+
+			document.getElementById('addBtn').addEventListener('click', ()=> modal.classList.remove('hidden'));
+			cancelBtn.addEventListener('click', ()=>{ modal.classList.add('hidden'); addForm.reset(); otherLabel.classList.add('hidden'); });
+			issueType.addEventListener('change', ()=>{ if(issueType.value==='outro') otherLabel.classList.remove('hidden'); else otherLabel.classList.add('hidden'); });
+
+			addForm.addEventListener('submit', (e)=>{
+				e.preventDefault();
+				let solicitante = document.getElementById('author').value.trim() || currentUser();
+				const setor = document.getElementById('setor').value;
+				const categoriaRaw = document.getElementById('issueType').value || 'outro';
+				const categoria = categoriaRaw.charAt(0).toUpperCase() + categoriaRaw.slice(1);
+				const descricao = (categoriaRaw === 'outro') ? (document.getElementById('otherText').value.trim() || '') : document.getElementById('description').value.trim();
+				const prioridade = document.getElementById('priority').value || 'normal';
+
+				if(!setor){ alert('Por favor selecione o setor.'); return; }
+				if(!solicitante){ solicitante = prompt('Informe seu nome:') || 'Usuário'; }
+				// save name for auto-fill later
+				localStorage.setItem('ompi_user_name', solicitante);
+				// also save as ompi_current_user if present (login stores it)
+				if(!localStorage.getItem('ompi_current_user')) localStorage.setItem('ompi_current_user', solicitante);
+
+				const item = {
+					id: uid(),
+					solicitante: solicitante,
+					setor: setor,
+					categoria: categoria,
+					descricao: descricao,
+					prioridade: prioridade.charAt(0).toUpperCase() + prioridade.slice(1),
+					status: 'pending',
+					data_abertura: new Date().toISOString(),
+					data_inicio: null,
+					data_conclusao: null
+				};
+				const arr = load(); arr.unshift(item); save(arr);
+				addForm.reset(); otherLabel.classList.add('hidden'); modal.classList.add('hidden');
+				alert('Chamado criado com sucesso.');
+				renderCards();
+			});
+
+			// render user's chamados filtered by solicitante
+			function renderCards(){
+				const me = currentUser(); const arr = load();
+				const mine = me ? arr.filter(x=>String(x.solicitante||'').toLowerCase() === String(me).toLowerCase()) : arr;
+				cardsRoot.innerHTML = '';
+				if(!mine.length){ cardsRoot.innerHTML = '<div style="color:var(--muted)">Nenhum chamado encontrado.</div>'; return; }
+				mine.forEach(it=>{
+					const c = document.createElement('div'); c.className='card';
+					const shortId = it.id.toString().slice(-6);
+					const statusClass = it.status === 'doing' ? 'doing' : (it.status === 'done' ? 'done' : 'pending');
+					const statusLabel = it.status === 'doing' ? 'Em Andamento' : (it.status === 'done' ? 'Concluído' : 'Pendente');
+					c.innerHTML = `<div class="id">#${shortId}</div><div style="font-weight:600;margin-top:6px">${escapeHtml(it.categoria||'')}</div><div style="margin-top:8px"><span class="badge ${statusClass}">${statusLabel}</span></div><div class="meta">Setor: ${escapeHtml(it.setor||'')} • Prioridade: ${escapeHtml(it.prioridade||'')}</div>`;
+					cardsRoot.appendChild(c);
+				});
+			}
+
+			function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
+
+			// polling to update every 2 seconds
+			renderCards();
+			setInterval(renderCards,2000);
+		})();
+	</script>
+</body>
+</html>
+

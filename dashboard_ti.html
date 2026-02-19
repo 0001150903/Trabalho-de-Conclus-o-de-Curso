@@ -1,0 +1,200 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OMPI — Dashboard Técnico</title>
+  <style>
+    :root{ --bg:#071023; --panel:#08182a; --muted:#9aa4b2; --accent:#2e7be6; --ok:#2aa56a }
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,system-ui,Arial;background:linear-gradient(180deg,#03121a,#071422);color:#e6eef8}
+    .user-wrap{max-width:1100px;margin:28px auto;padding:16px}
+    .user-header{display:flex;align-items:center;justify-content:space-between}
+    .brand{display:flex;gap:12px;align-items:center}
+    .controls{display:flex;gap:8px}
+    .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
+
+    .kanban-area{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
+    .kanban-column{background:linear-gradient(180deg,#071722,#061422);padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)}
+    .kanban-column h3{margin:0 0 8px 0}
+    .kanban-list{min-height:120px}
+    .kanban-card{background:#071a2b;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);cursor:grab}
+    .kanban-card.dragging{opacity:0.6}
+    .kanban-card .meta{font-size:12px;color:var(--muted);margin-top:8px}
+    .timestamps{font-size:11px;color:var(--muted);margin-top:6px}
+
+    .modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
+    .modal.hidden{display:none}
+    .modal-panel{background:linear-gradient(180deg,#071428,#08182a);padding:18px;border-radius:10px;min-width:360px;color:#dfe9f8;border:1px solid rgba(255,255,255,0.04)}
+    input,select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#000000;margin-top:6px}
+  </style>
+</head>
+<body>
+  <main class="user-wrap">
+    <header class="user-header">
+      <div class="brand">
+        <svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="10" fill="#18486d"/></svg>
+        <div>
+          <h1>OMPI</h1>
+          <p style="margin:0;color:var(--muted);font-size:13px">Dashboard Técnico</p>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="openAddBtn" class="btn">Adicionar chamado</button>
+        <button id="resetBtn" class="btn ghost">Resetar Sistema</button>
+      </div>
+    </header>
+
+    <section class="kanban-area">
+      <div class="kanban-column" data-status="todo">
+        <h3>Pendente</h3>
+        <div class="kanban-list" data-status="todo"></div>
+      </div>
+
+      <div class="kanban-column" data-status="doing">
+        <h3>Em Andamento</h3>
+        <div class="kanban-list" data-status="doing"></div>
+      </div>
+
+      <div class="kanban-column" data-status="done">
+        <h3>Concluído</h3>
+        <div class="kanban-list" data-status="done"></div>
+      </div>
+    </section>
+
+    <!-- Modal / painel de adicionar -->
+    <div id="addModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+      <div class="modal-panel">
+        <h2 id="addTitle">Novo Chamado</h2>
+        <form id="addForm">
+          <label>Solicitante
+            <input id="author" type="text" placeholder="Seu nome" required />
+          </label>
+
+          <label>Setor
+            <select id="setor">
+              <option value="">-- Escolha --</option>
+              <option value="Producao A">Produção A</option>
+              <option value="Producao B">Produção B</option>
+              <option value="ADM">ADM</option>
+              <option value="Almoxarifado">Almoxarifado</option>
+            </select>
+          </label>
+
+          <label>Tipo de problema
+            <select id="issueType" required>
+              <option value="">-- Escolha --</option>
+              <option value="mouse">Mouse</option>
+              <option value="senha">Senha</option>
+              <option value="impressora">Impressora</option>
+              <option value="rede">Rede</option>
+              <option value="outro">Outro</option>
+            </select>
+          </label>
+
+          <label id="otherLabel" class="hidden">Descreva (Outro)
+            <input id="otherText" placeholder="Descreva o problema" />
+          </label>
+
+          <label>Prioridade
+            <select id="priority">
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="baixa">Baixa</option>
+            </select>
+          </label>
+
+          <label>Descrição
+            <textarea id="description" rows="3" placeholder="Informações adicionais (opcional)"></textarea>
+          </label>
+
+          <div class="modal-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+            <button type="button" id="cancelAdd" class="btn ghost">Cancelar</button>
+            <button type="submit" class="btn">Criar chamado</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = 'ompi_chamados_db';
+      const lists = document.querySelectorAll('.kanban-list');
+      const openBtn = document.getElementById('openAddBtn');
+      const modal = document.getElementById('addModal');
+      const cancelBtn = document.getElementById('cancelAdd');
+      const addForm = document.getElementById('addForm');
+      const resetBtn = document.getElementById('resetBtn');
+
+      function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+      function load(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): []; }catch(e){ return []; } }
+      function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+      let data = load();
+
+      // modal handlers
+      if(openBtn) openBtn.addEventListener('click', ()=> modal.classList.remove('hidden'));
+      if(cancelBtn) cancelBtn.addEventListener('click', ()=> modal.classList.add('hidden'));
+
+      addForm.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const solicitante = document.getElementById('author').value.trim();
+        const setor = document.getElementById('setor').value || 'ADM';
+        const tipo = document.getElementById('issueType').value;
+        const descricao = document.getElementById('description').value.trim();
+        const prioridade = document.getElementById('priority').value || 'normal';
+        if(!solicitante || !tipo) return alert('Preencha solicitante e tipo.');
+        const item = { id: uid(), solicitante: solicitante, setor: setor, categoria: tipo.charAt(0).toUpperCase()+tipo.slice(1), descricao: descricao, prioridade: prioridade, status: 'pending', data_abertura: new Date().toISOString(), data_inicio: null, data_conclusao: null };
+        data.unshift(item); save(data); render(); addForm.reset(); modal.classList.add('hidden');
+      });
+
+      function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
+
+      function createCard(item){
+        const el = document.createElement('div'); el.className='kanban-card'; el.draggable=true; el.dataset.id = item.id;
+        el.innerHTML = `<strong>${escapeHtml(item.categoria||'')}</strong><div style="margin-top:6px">${escapeHtml(item.descricao||'')}</div><div class="meta">${escapeHtml(item.solicitante||'')} • ${escapeHtml(item.setor||'')}</div><div class="timestamps"><small>Abertura: ${item.data_abertura? new Date(item.data_abertura).toLocaleString(): '-'}</small><br/><small>Início: ${item.data_inicio? new Date(item.data_inicio).toLocaleString() : '-'}</small><br/><small>Conclusão: ${item.data_conclusao? new Date(item.data_conclusao).toLocaleString() : '-'}</small></div>`;
+        return el;
+      }
+
+      function render(){ lists.forEach(l=> l.innerHTML=''); data.forEach(item=>{
+        let target = 'todo'; if(item.status === 'doing') target='doing'; else if(item.status === 'done') target='done';
+        const container = document.querySelector(`.kanban-list[data-status="${target}"]`);
+        if(container) container.appendChild(createCard(item));
+      }); attachHandlers(); }
+
+      // drag/drop
+      let dragged=null;
+      function attachHandlers(){
+        document.querySelectorAll('.kanban-card').forEach(card=>{
+          card.removeEventListener('dragstart', onDragStart); card.removeEventListener('dragend', onDragEnd);
+          card.addEventListener('dragstart', onDragStart); card.addEventListener('dragend', onDragEnd);
+        });
+        lists.forEach(list=>{ list.removeEventListener('dragover', onDragOver); list.removeEventListener('drop', onDrop); list.addEventListener('dragover', onDragOver); list.addEventListener('drop', onDrop); });
+      }
+      function onDragStart(e){ dragged=this; this.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain', this.dataset.id);}catch(_){} }
+      function onDragEnd(){ if(this) this.classList.remove('dragging'); dragged=null; }
+      function onDragOver(e){ e.preventDefault(); }
+      function onDrop(e){ e.preventDefault(); const id = e.dataTransfer.getData('text/plain') || (dragged && dragged.dataset.id); if(!id) return; const it = data.find(d=>d.id===id); if(!it) return; const newTarget = this.dataset.status; // todo/doing/done
+        if(newTarget === 'doing'){ it.status='doing'; if(!it.data_inicio) it.data_inicio = new Date().toISOString(); }
+        else if(newTarget === 'done'){ it.status='done'; if(!it.data_conclusao) it.data_conclusao = new Date().toISOString(); }
+        else { it.status='pending'; }
+        save(data); render(); }
+
+      // reset
+      if(resetBtn) resetBtn.addEventListener('click', ()=>{ if(!confirm('Remover todos os chamados?')) return; localStorage.removeItem(STORAGE_KEY); data = []; render(); });
+
+      // polling every 5s to pick new chamados
+      setInterval(()=>{ const newData = load(); // quick compare length or ids
+        if(JSON.stringify(newData)!==JSON.stringify(data)){ data = newData; render(); } },5000);
+
+      // init sample data if empty
+      if(!data || !data.length){ data = [ { id: uid(), solicitante:'João', setor:'ADM', categoria:'Teste', descricao:'Dados iniciais', prioridade:'normal', status:'pending', data_abertura:new Date().toISOString(), data_inicio:null, data_conclusao:null } ]; save(data); }
+      render();
+    })();
+  </script>
+</body>
+</html>

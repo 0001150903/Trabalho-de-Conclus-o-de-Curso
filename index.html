@@ -1,0 +1,74 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>OMPI — Login</title>
+  <meta name="description" content="Login OMPI - Área restrita" />
+  <style>
+    body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#021124,#071428);font-family:Inter,Segoe UI,system-ui,Arial;color:#eaf2ff}
+    .login-wrap{width:360px;background:linear-gradient(180deg,#071827,#081a2b);padding:22px;border-radius:12px;border:1px solid rgba(255,255,255,0.04)}
+    .brand{display:flex;gap:12px;align-items:center}
+    h1{margin:0;font-size:20px}
+    .login-title{color:#bcd7ff}
+    label{display:block;font-size:13px;color:#9fb2d9;margin-top:10px}
+    input{width:100%;padding:8px;margin-top:6px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#eaf2ff}
+    .actions{display:flex;align-items:center;justify-content:space-between;margin-top:12px}
+    .btn{background:#2e7be6;color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .helper{margin-top:10px;color:#9fb2d9}
+  </style>
+</head>
+<body>
+  <main class="login-wrap" role="main" aria-labelledby="loginTitle">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="10" fill="#18486d"/></svg>
+      <div>
+        <h1 id="loginTitle">OMPI</h1>
+        <p style="margin:0;color:#9fb2d9">Portal de Acesso</p>
+      </div>
+    </div>
+
+    <h2 class="login-title">Entrar na sua conta</h2>
+
+    <form class="login-form" id="loginForm" action="#" method="post" novalidate>
+      <div class="field">
+        <label for="username">Usuário</label>
+        <input id="username" name="username" type="text" placeholder="seu.usuario" autocomplete="username" required />
+      </div>
+
+      <div class="field">
+        <label for="password">Senha</label>
+        <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required />
+      </div>
+
+      <div class="actions">
+        <label class="remember"><input type="checkbox" name="remember" /> Lembrar</label>
+        <button class="btn" type="submit">Entrar</button>
+      </div>
+
+      <p id="feedback" class="helper" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script>
+    (function(){
+      const form = document.getElementById('loginForm');
+      const feedback = document.getElementById('feedback');
+      function show(msg){ feedback.textContent = msg; }
+      form.addEventListener('submit',(e)=>{
+        e.preventDefault();
+        const u = document.getElementById('username').value.trim();
+        const p = document.getElementById('password').value.trim();
+        show('Verificando...');
+        setTimeout(()=>{
+          if(u==='admin' && p==='123'){ localStorage.setItem('ompi_current_user','admin'); show('Redirecionando...'); setTimeout(()=> location.href='dashboard_ti.html',600); return; }
+          if(u==='fabrica' && p==='123'){ localStorage.setItem('ompi_current_user','fabrica'); show('Redirecionando...'); setTimeout(()=> location.href='user.html',600); return; }
+          // fallback: treat as regular user
+          localStorage.setItem('ompi_current_user', u || 'usuario'); show('Entrando...'); setTimeout(()=> location.href='user.html',600);
+        },700);
+      });
+    })();
+  </script>
+</body>
+</html>
