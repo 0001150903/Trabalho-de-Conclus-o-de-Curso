@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -12,7 +11,7 @@
     .user-header{display:flex;align-items:center;justify-content:space-between}
     .brand{display:flex;gap:12px;align-items:center}
     .controls{display:flex;gap:8px}
-    .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;border:none;cursor:pointer}
+    .btn{background:var(--accent);color:#fff;padding:8px 10px;border-radius:8px;border:none;cursor:pointer;font-weight: 600;}
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.06)}
 
     .kanban-area{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px}
@@ -24,20 +23,53 @@
     .kanban-card .meta{font-size:12px;color:var(--muted);margin-top:8px}
     .timestamps{font-size:11px;color:var(--muted);margin-top:6px}
 
-    .modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
+    .modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.8);z-index: 100;}
     .modal.hidden{display:none}
-    .modal-panel{background:linear-gradient(180deg,#071428,#08182a);padding:18px;border-radius:10px;min-width:360px;color:#dfe9f8;border:1px solid rgba(255,255,255,0.04)}
-    input,select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#000000;margin-top:6px}
+    .modal-panel{background:linear-gradient(180deg,#071428,#08182a);padding:24px;border-radius:10px;min-width:400px;color:#dfe9f8;border:1px solid rgba(255,255,255,0.1);box-shadow: 0 10px 25px rgba(0,0,0,0.5)}
+    
+    /* Ajustes solicitados nos campos de seleção/entrada */
+    #addForm label { display: block; margin-top: 12px; font-size: 14px; color: #9fb2d9; }
+    
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 6px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box; /* Garante que o padding não quebre a largura */
+      
+      /* Cores solicitadas */
+      background-color: #ffffff !important; 
+      color: #000000 !important;
+      font-weight: 500;
+    }
+
+    textarea { resize: vertical; }
+    .hidden { display: none; }
+
   </style>
-</head>
-<body>
+  </head>
+  <body>
+  <header class="site-header" role="banner" style="position:relative">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit">
+  <img src="mídia/Logo.svg" alt="Logo OMPI" style="width:40px;height:40px;border-radius:8px;">
+        <strong style="color:#eaf2ff">OMPI</strong>
+      </a>
+    </div>
+    <nav style="position:absolute;right:12px;top:10px">
+      <a href="index.html" style="color:#cfe3ff;margin-right:10px;text-decoration:none">Login</a>
+      <a href="user.html" style="color:#cfe3ff;margin-right:10px;text-decoration:none">Abertura</a>
+      <a href="dashboard_ti.html" style="color:#cfe3ff;text-decoration:none">Dashboard</a>
+    </nav>
+  </header>
   <main class="user-wrap">
     <header class="user-header">
       <div class="brand">
-        <svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="10" fill="#18486d"/></svg>
+  <img src="mídia/Logo.svg" alt="Logo OMPI" style="width: 40px; height: 40px; border-radius: 16px;">
         <div>
-          <h1>OMPI</h1>
-          <p style="margin:0;color:var(--muted);font-size:13px">Dashboard Técnico</p>
+          <h1 id="loginTitle" style="margin:0">OMPI</h1>
+          <p style="margin:0;color:#9fb2d9">Dashboard Técnico</p>
         </div>
       </div>
 
@@ -64,10 +96,9 @@
       </div>
     </section>
 
-    <!-- Modal / painel de adicionar -->
     <div id="addModal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="addTitle">
       <div class="modal-panel">
-        <h2 id="addTitle">Novo Chamado</h2>
+        <h2 id="addTitle" style="margin-top:0">Novo Chamado</h2>
         <form id="addForm">
           <label>Solicitante
             <input id="author" type="text" placeholder="Seu nome" required />
@@ -110,14 +141,13 @@
             <textarea id="description" rows="3" placeholder="Informações adicionais (opcional)"></textarea>
           </label>
 
-          <div class="modal-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px">
+          <div class="modal-actions" style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px">
             <button type="button" id="cancelAdd" class="btn ghost">Cancelar</button>
             <button type="submit" class="btn">Criar chamado</button>
           </div>
         </form>
       </div>
     </div>
-
   </main>
 
   <script>
@@ -136,64 +166,142 @@
 
       let data = load();
 
-      // modal handlers
-      if(openBtn) openBtn.addEventListener('click', ()=> modal.classList.remove('hidden'));
-      if(cancelBtn) cancelBtn.addEventListener('click', ()=> modal.classList.add('hidden'));
+      if(openBtn) openBtn.addEventListener('click', ()=> modal && modal.classList.remove('hidden'));
+      if(cancelBtn) cancelBtn.addEventListener('click', ()=> modal && modal.classList.add('hidden'));
 
-      addForm.addEventListener('submit', (e)=>{
+      if(addForm) addForm.addEventListener('submit', (e)=>{
         e.preventDefault();
-        const solicitante = document.getElementById('author').value.trim();
-        const setor = document.getElementById('setor').value || 'ADM';
-        const tipo = document.getElementById('issueType').value;
-        const descricao = document.getElementById('description').value.trim();
-        const prioridade = document.getElementById('priority').value || 'normal';
+        const authorEl = document.getElementById('author');
+        const solicitante = authorEl ? authorEl.value.trim() : '';
+        const setorEl = document.getElementById('setor');
+        const setor = setorEl ? (setorEl.value || 'ADM') : 'ADM';
+        const issueEl = document.getElementById('issueType');
+        const tipo = issueEl ? issueEl.value : '';
+        const descEl = document.getElementById('description');
+        const descricao = descEl ? descEl.value.trim() : '';
+        const prioEl = document.getElementById('priority');
+        const prioridade = prioEl ? (prioEl.value || 'normal') : 'normal';
         if(!solicitante || !tipo) return alert('Preencha solicitante e tipo.');
-        const item = { id: uid(), solicitante: solicitante, setor: setor, categoria: tipo.charAt(0).toUpperCase()+tipo.slice(1), descricao: descricao, prioridade: prioridade, status: 'pending', data_abertura: new Date().toISOString(), data_inicio: null, data_conclusao: null };
-        data.unshift(item); save(data); render(); addForm.reset(); modal.classList.add('hidden');
+        
+        const item = { 
+          id: uid(), 
+          solicitante: solicitante, 
+          setor: setor, 
+          categoria: tipo.charAt(0).toUpperCase()+tipo.slice(1), 
+          descricao: descricao, 
+          prioridade: prioridade, 
+          status: 'todo', 
+          data_abertura: new Date().toISOString(), 
+          data_inicio: null, 
+          data_conclusao: null 
+        };
+        
+        data.unshift(item); 
+        save(data); 
+        render(); 
+        addForm.reset(); 
+        modal.classList.add('hidden');
       });
 
       function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"})[c]); }
 
       function createCard(item){
-        const el = document.createElement('div'); el.className='kanban-card'; el.draggable=true; el.dataset.id = item.id;
-        el.innerHTML = `<strong>${escapeHtml(item.categoria||'')}</strong><div style="margin-top:6px">${escapeHtml(item.descricao||'')}</div><div class="meta">${escapeHtml(item.solicitante||'')} • ${escapeHtml(item.setor||'')}</div><div class="timestamps"><small>Abertura: ${item.data_abertura? new Date(item.data_abertura).toLocaleString(): '-'}</small><br/><small>Início: ${item.data_inicio? new Date(item.data_inicio).toLocaleString() : '-'}</small><br/><small>Conclusão: ${item.data_conclusao? new Date(item.data_conclusao).toLocaleString() : '-'}</small></div>`;
+        const el = document.createElement('div'); 
+        el.className='kanban-card'; 
+        el.draggable=true; 
+        el.dataset.id = item.id;
+        
+        const prioStyle = item.prioridade === 'alta' ? 'color:#ff6b6b' : (item.prioridade === 'baixa' ? 'color:#74c0fc' : 'color:#9aa4b2');
+        
+        el.innerHTML = `
+          <strong>${escapeHtml(item.categoria)}</strong>
+          <span style="font-size:10px; float:right; ${prioStyle}">${item.prioridade.toUpperCase()}</span>
+          <div style="margin-top:6px; font-size:13px">${escapeHtml(item.descricao)}</div>
+          <div class="meta">${escapeHtml(item.solicitante)} • ${escapeHtml(item.setor)}</div>
+          <div class="timestamps">
+            <small>Abertura: ${new Date(item.data_abertura).toLocaleString()}</small><br/>
+            <small>Início: ${item.data_inicio ? new Date(item.data_inicio).toLocaleString() : '-'}</small><br/>
+            <small>Conclusão: ${item.data_conclusao ? new Date(item.data_conclusao).toLocaleString() : '-'}</small>
+          </div>`;
         return el;
       }
 
-      function render(){ lists.forEach(l=> l.innerHTML=''); data.forEach(item=>{
-        let target = 'todo'; if(item.status === 'doing') target='doing'; else if(item.status === 'done') target='done';
-        const container = document.querySelector(`.kanban-list[data-status="${target}"]`);
-        if(container) container.appendChild(createCard(item));
-      }); attachHandlers(); }
+      function render(){ 
+        lists.forEach(l=> l.innerHTML=''); 
+        data.forEach(item=>{
+          let target = item.status === 'doing' ? 'doing' : (item.status === 'done' ? 'done' : 'todo');
+          const container = document.querySelector(`.kanban-list[data-status="${target}"]`);
+          if(container) container.appendChild(createCard(item));
+        }); 
+        attachHandlers(); 
+      }
 
-      // drag/drop
       let dragged=null;
       function attachHandlers(){
         document.querySelectorAll('.kanban-card').forEach(card=>{
-          card.removeEventListener('dragstart', onDragStart); card.removeEventListener('dragend', onDragEnd);
-          card.addEventListener('dragstart', onDragStart); card.addEventListener('dragend', onDragEnd);
+          card.addEventListener('dragstart', onDragStart); 
+          card.addEventListener('dragend', onDragEnd);
         });
-        lists.forEach(list=>{ list.removeEventListener('dragover', onDragOver); list.removeEventListener('drop', onDrop); list.addEventListener('dragover', onDragOver); list.addEventListener('drop', onDrop); });
+        lists.forEach(list=>{ 
+          list.addEventListener('dragover', onDragOver); 
+          list.addEventListener('drop', onDrop); 
+        });
       }
-      function onDragStart(e){ dragged=this; this.classList.add('dragging'); try{ e.dataTransfer.setData('text/plain', this.dataset.id);}catch(_){} }
-      function onDragEnd(){ if(this) this.classList.remove('dragging'); dragged=null; }
+      
+      function onDragStart(e){ dragged=this; this.classList.add('dragging'); e.dataTransfer.setData('text/plain', this.dataset.id); }
+      function onDragEnd(){ this.classList.remove('dragging'); dragged=null; }
       function onDragOver(e){ e.preventDefault(); }
-      function onDrop(e){ e.preventDefault(); const id = e.dataTransfer.getData('text/plain') || (dragged && dragged.dataset.id); if(!id) return; const it = data.find(d=>d.id===id); if(!it) return; const newTarget = this.dataset.status; // todo/doing/done
-        if(newTarget === 'doing'){ it.status='doing'; if(!it.data_inicio) it.data_inicio = new Date().toISOString(); }
-        else if(newTarget === 'done'){ it.status='done'; if(!it.data_conclusao) it.data_conclusao = new Date().toISOString(); }
-        else { it.status='pending'; }
-        save(data); render(); }
+      
+      function onDrop(e){ 
+        e.preventDefault(); 
+        const id = e.dataTransfer.getData('text/plain'); 
+        const it = data.find(d=>d.id===id); 
+        if(!it) return; 
+        
+        const newStatus = this.dataset.status;
+        it.status = newStatus;
+        
+        if(newStatus === 'doing' && !it.data_inicio) it.data_inicio = new Date().toISOString();
+        if(newStatus === 'done' && !it.data_conclusao) it.data_conclusao = new Date().toISOString();
+        
+        save(data); 
+        render(); 
+      }
 
-      // reset
-      if(resetBtn) resetBtn.addEventListener('click', ()=>{ if(!confirm('Remover todos os chamados?')) return; localStorage.removeItem(STORAGE_KEY); data = []; render(); });
+      if(resetBtn) resetBtn.addEventListener('click', ()=>{ 
+        if(!confirm('Remover todos os chamados?')) return; 
+        localStorage.removeItem(STORAGE_KEY); 
+        data = []; 
+        render(); 
+      });
 
-      // polling every 5s to pick new chamados
-      setInterval(()=>{ const newData = load(); // quick compare length or ids
-        if(JSON.stringify(newData)!==JSON.stringify(data)){ data = newData; render(); } },5000);
+      setInterval(()=>{ 
+        const newData = load();
+        if(JSON.stringify(newData) !== JSON.stringify(data)){ data = newData; render(); } 
+      }, 5000);
 
-      // init sample data if empty
-      if(!data || !data.length){ data = [ { id: uid(), solicitante:'João', setor:'ADM', categoria:'Teste', descricao:'Dados iniciais', prioridade:'normal', status:'pending', data_abertura:new Date().toISOString(), data_inicio:null, data_conclusao:null } ]; save(data); }
       render();
+    
+      // CSV export for dashboard
+      function toCsv(items){
+        if(!items || !items.length) return '';
+        const keys = ['id','solicitante','setor','categoria','descricao','prioridade','status','data_abertura','data_inicio','data_conclusao'];
+        const header = keys.join(',');
+        const lines = items.map(it => keys.map(k => '"'+(String(it[k]||'')).replace(/"/g,'""')+'"').join(','));
+        return [header].concat(lines).join('\n');
+      }
+
+      const exportBtn = document.getElementById('exportCsvBtn');
+      if(exportBtn){
+        exportBtn.addEventListener('click', ()=>{
+          const arr = load();
+          if(!arr || !arr.length) return alert('Nenhum chamado para exportar.');
+          const csv = toCsv(arr);
+          const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = 'ompi_chamados_export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+        });
+      }
     })();
   </script>
 </body>

@@ -47,10 +47,23 @@
 	</style>
 </head>
 <body>
+	<header class="site-header" role="banner" style="position:relative">
+		<div style="display:flex;align-items:center;gap:12px">
+			<a href="index.html" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit">
+				<img src="mídia/Logo.svg" alt="Logo OMPI" style="width:40px;height:40px;border-radius:8px;">
+				<strong style="color:#eaf2ff">OMPI</strong>
+			</a>
+		</div>
+		<nav style="position:absolute;right:12px;top:10px">
+			<a href="index.html" style="color:#cfe3ff;margin-right:10px;text-decoration:none">Login</a>
+			<a href="user.html" style="color:#cfe3ff;margin-right:10px;text-decoration:none">Abertura</a>
+			<a href="dashboard_ti.html" style="color:#cfe3ff;text-decoration:none">Dashboard</a>
+		</nav>
+	</header>
 	<main class="user-wrap">
 		<header class="user-header">
 			<div class="brand">
-				<svg width="44" height="44" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="10" fill="#18486d"/></svg>
+				<img src="mídia/Logo.svg" alt="Logo OMPI" style="width: 44px; height: 44px; border-radius: 8px;">
 				<div>
 					<h1>OMPI</h1>
 					<p style="margin:0;color:var(--muted);font-size:13px">Abertura Rápida de Chamados</p>
@@ -119,8 +132,9 @@
 			</div>
 		</div>
 
-		<div class="controls" style="margin-top:12px">
+		<div class="controls" style="margin-top:12px;display:flex;gap:8px;align-items:center">
 			<button id="addBtn" class="btn">Adicionar chamado</button>
+			<button id="exportCsvBtn" class="btn ghost">Exportar CSV</button>
 		</div>
 
 		<!-- Acompanhamento em Tempo Real -->
@@ -132,7 +146,8 @@
 		<footer>
 			<small>Dica: abra o dashboard técnico em outra aba para testar movimentação de chamados ao vivo.</small>
 		</footer>
-	</main>
+			<small>Dica: abra o dashboard técnico em outra aba para testar movimentação de chamados ao vivo.</small>
+			<div style="margin-top:6px;color:rgba(255,255,255,0.6)">Exportar e compartilhar relatórios locais</div>
 
 	<script>
 		// Consolidated JS for user page
@@ -162,19 +177,20 @@
 
 			qaButtons.forEach(btn=> btn.addEventListener('click', ()=>{
 				const a = btn.dataset.action; const p = presets[a];
-				modal.classList.remove('hidden');
-				const saved = currentUser(); if(saved) document.getElementById('author').value = saved;
-				document.getElementById('issueType').value = (p? p.categoria.toLowerCase() : '');
-				document.getElementById('description').value = p? p.descricao : '';
-				document.getElementById('priority').value = p? p.prioridade : 'normal';
-				if(!p) otherLabel.classList.remove('hidden'); else otherLabel.classList.add('hidden');
+				if(modal) modal.classList.remove('hidden');
+				const saved = currentUser();
+				const authorEl = document.getElementById('author'); if(saved && authorEl) authorEl.value = saved;
+				const issueEl = document.getElementById('issueType'); if(issueEl) issueEl.value = (p? p.categoria.toLowerCase() : '');
+				const descEl = document.getElementById('description'); if(descEl) descEl.value = p? p.descricao : '';
+				const prioEl = document.getElementById('priority'); if(prioEl) prioEl.value = p? p.prioridade : 'normal';
+				if(!p && otherLabel) otherLabel.classList.remove('hidden'); else if(otherLabel) otherLabel.classList.add('hidden');
 			}));
 
-			document.getElementById('addBtn').addEventListener('click', ()=> modal.classList.remove('hidden'));
-			cancelBtn.addEventListener('click', ()=>{ modal.classList.add('hidden'); addForm.reset(); otherLabel.classList.add('hidden'); });
-			issueType.addEventListener('change', ()=>{ if(issueType.value==='outro') otherLabel.classList.remove('hidden'); else otherLabel.classList.add('hidden'); });
+			const addBtn = document.getElementById('addBtn'); if(addBtn) addBtn.addEventListener('click', ()=> modal && modal.classList.remove('hidden'));
+			if(cancelBtn) cancelBtn.addEventListener('click', ()=>{ if(modal) modal.classList.add('hidden'); if(addForm) addForm.reset(); if(otherLabel) otherLabel.classList.add('hidden'); });
+			if(issueType) issueType.addEventListener('change', ()=>{ if(issueType.value==='outro' && otherLabel) otherLabel.classList.remove('hidden'); else if(otherLabel) otherLabel.classList.add('hidden'); });
 
-			addForm.addEventListener('submit', (e)=>{
+			if(addForm) addForm.addEventListener('submit', (e)=>{
 				e.preventDefault();
 				let solicitante = document.getElementById('author').value.trim() || currentUser();
 				const setor = document.getElementById('setor').value;
@@ -229,6 +245,28 @@
 			// polling to update every 2 seconds
 			renderCards();
 			setInterval(renderCards,2000);
+
+			// CSV export
+			function toCsv(items){
+				if(!items || !items.length) return '';
+				const keys = ['id','solicitante','setor','categoria','descricao','prioridade','status','data_abertura','data_inicio','data_conclusao'];
+				const header = keys.join(',');
+				const lines = items.map(it => keys.map(k => '"'+(String(it[k]||'')).replace(/"/g,'""')+'"').join(','));
+				return [header].concat(lines).join('\n');
+			}
+
+			const exportBtn = document.getElementById('exportCsvBtn');
+			if(exportBtn){
+				exportBtn.addEventListener('click', ()=>{
+					const arr = load();
+					if(!arr || !arr.length) return alert('Nenhum chamado para exportar.');
+					const csv = toCsv(arr);
+					const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+					const url = URL.createObjectURL(blob);
+					const a = document.createElement('a');
+					a.href = url; a.download = 'ompi_chamados_export.csv'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+				});
+			}
 		})();
 	</script>
 </body>
