@@ -61,9 +61,9 @@ Este projeto está licenciado sob a Licença Apache 2.0 - veja o arquivo [LICENS
 
 * ** Maiderson Junio de Souza Oliveira ** - *Desenvolvedor Full Stack*
 * ** Lorena Santos Figueredo ** - *Analista de QA*
-* ** Raissa Ellen de Moraes ** - * Diretora *
-* ** Matheus Henrique Teixeira Munis ** - *Auxiliar de Infraestrutura*
-* ** Eric Gonçalves Amaral ** - *Engenheiro Chefe*
+* ** Raissa Ellen de Moraes ** - *Analista de SQL*
+* ** Matheus Henrique Teixeira Munis ** - *Especialista em UX/UI e Design Gráfico*
+* ** Erick Gonçalves Amaral ** - *Arquiteto de Banco de Dados*
 * ** Gizele Telheiro dos Santos ** - *Engenheira de Software*
 ---
 *Projeto desenvolvido para o curso de Informática para Internet - SENAI.*
