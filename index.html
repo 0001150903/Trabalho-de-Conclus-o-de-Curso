@@ -62,12 +62,17 @@
         e.preventDefault();
         const u = document.getElementById('username').value.trim();
         const p = document.getElementById('password').value.trim();
+        // validation: do not allow empty username or password
+        if(!u || !p){
+          show('Por favor informe usuário e senha.');
+          return;
+        }
         show('Verificando...');
         setTimeout(()=>{
           if(u==='admin' && p==='123'){ localStorage.setItem('ompi_current_user','admin'); show('Redirecionando...'); setTimeout(()=> location.href='dashboard_ti.html',600); return; }
           if(u==='fabrica' && p==='123'){ localStorage.setItem('ompi_current_user','fabrica'); show('Redirecionando...'); setTimeout(()=> location.href='user.html',600); return; }
-          // fallback: treat as regular user
-          localStorage.setItem('ompi_current_user', u || 'usuario'); show('Entrando...'); setTimeout(()=> location.href='user.html',600);
+          // fallback: treat as regular user (only when both fields provided)
+          localStorage.setItem('ompi_current_user', u); show('Entrando...'); setTimeout(()=> location.href='user.html',600);
         },700);
       });
     })();
