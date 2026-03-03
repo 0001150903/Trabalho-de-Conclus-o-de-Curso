@@ -103,7 +103,7 @@
           </label>
 
           <label>Tipo de problema
-            <select id="issueType" required>
+                <select id="issueType" required>
               <option value="">-- Escolha --</option>
               <option value="mouse">Mouse</option>
               <option value="senha">Senha</option>
@@ -113,9 +113,10 @@
             </select>
           </label>
 
-          <label id="otherLabel" class="hidden">Descreva (Outro)
-            <input id="otherText" placeholder="Descreva o problema" />
-          </label>
+              <label id="otherLabel" class="hidden">Descreva (Outro)
+                <input id="otherText" placeholder="Descreva o problema" />
+              </label>
+              <div id="addFormFeedback" class="helper hidden" style="margin-top:8px;color:#f8d7da;background:rgba(248,215,218,0.06);padding:8px;border-radius:6px"></div>
 
           <label>Prioridade
             <select id="priority">
@@ -159,19 +160,32 @@
       if(openBtn) openBtn.addEventListener('click', ()=> modal && modal.classList.remove('hidden'));
       if(cancelBtn) cancelBtn.addEventListener('click', ()=> modal && modal.classList.add('hidden'));
 
+      const issueTypeEl = document.getElementById('issueType');
+      const otherLabel = document.getElementById('otherLabel');
+
+      // inicializa visibilidade do campo 'other' de acordo com o valor atual da categoria
+      if(issueTypeEl){
+        if(issueTypeEl.value === 'outro'){ if(otherLabel) otherLabel.classList.remove('hidden'); } else { if(otherLabel) otherLabel.classList.add('hidden'); }
+        issueTypeEl.addEventListener('change', ()=>{ if(issueTypeEl.value==='outro' && otherLabel) otherLabel.classList.remove('hidden'); else if(otherLabel) otherLabel.classList.add('hidden'); });
+      }
+
       if(addForm) addForm.addEventListener('submit', (e)=>{
-        e.preventDefault();
+  e.preventDefault();
+  const fb = document.getElementById('addFormFeedback'); if(fb){ fb.classList.add('hidden'); fb.textContent=''; }
         const authorEl = document.getElementById('author');
         const solicitante = authorEl ? authorEl.value.trim() : '';
         const setorEl = document.getElementById('setor');
         const setor = setorEl ? (setorEl.value || 'ADM') : 'ADM';
-        const issueEl = document.getElementById('issueType');
-        const tipo = issueEl ? issueEl.value : '';
+        const tipo = issueTypeEl ? issueTypeEl.value : '';
+        // se tipo == 'outro', pegue o texto de otherText; caso contrário use description
+        const otherTextEl = document.getElementById('otherText');
         const descEl = document.getElementById('description');
-        const descricao = descEl ? descEl.value.trim() : '';
+        const descricao = (tipo === 'outro') ? (otherTextEl ? otherTextEl.value.trim() : '') : (descEl ? descEl.value.trim() : '');
         const prioEl = document.getElementById('priority');
         const prioridade = prioEl ? (prioEl.value || 'normal') : 'normal';
-        if(!solicitante || !tipo) return alert('Preencha solicitante e tipo.');
+  if(!solicitante || !tipo){ if(fb){ fb.textContent='Preencha solicitante e tipo.'; fb.classList.remove('hidden'); } else alert('Preencha solicitante e tipo.'); return; }
+  // se for outro, exige descrição no otherText
+  if(tipo === 'outro' && !descricao){ if(fb){ fb.textContent='Por favor descreva o problema em "Descreva (Outro)".'; fb.classList.remove('hidden'); otherTextEl && otherTextEl.focus(); } else { if(otherTextEl) otherTextEl.focus(); alert('Por favor descreva o problema.'); } return; }
         
         const item = { 
           id: uid(), 

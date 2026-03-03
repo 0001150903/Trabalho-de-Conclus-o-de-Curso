@@ -18,6 +18,7 @@
 		/* modal/form */
 		.modal{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:rgba(2,6,23,0.6)}
 		.modal.hidden{display:none}
+		.hidden{display:none}
 		.modal-panel{background:linear-gradient(180deg,#071428,#08182a);padding:18px;border-radius:10px;min-width:320px;color:#dfe9f8;border:1px solid rgba(255,255,255,0.04)}
 		form label{display:block;font-size:13px;margin-bottom:8px;color:var(--muted)}
 		input,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:#eaf2ff;margin-top:6px}
@@ -142,7 +143,7 @@
 			const modal = document.getElementById('addModal');
 			const addForm = document.getElementById('addForm');
 			const cancelBtn = document.getElementById('cancelAdd');
-			const issueType = document.getElementById('issueType');
+			const issueTypeEl = document.getElementById('issueType');
 			const otherLabel = document.getElementById('otherLabel');
 			const cardsRoot = document.getElementById('cards');
 
@@ -162,23 +163,42 @@
 
 			// quick-actions removidas; não há handlers aqui
 
-			const addBtn = document.getElementById('addBtn'); if(addBtn) addBtn.addEventListener('click', ()=> modal && modal.classList.remove('hidden'));
+			const addBtn = document.getElementById('addBtn');
+			if(addBtn) addBtn.addEventListener('click', ()=>{
+				if(addForm) addForm.reset();
+				if(otherLabel) otherLabel.classList.add('hidden');
+				const fb = document.getElementById('addFormFeedback'); if(fb){ fb.style.display='none'; fb.textContent=''; }
+				const authorEl = document.getElementById('author'); if(authorEl) authorEl.value = currentUser();
+				if(modal) modal.classList.remove('hidden');
+			});
 			if(cancelBtn) cancelBtn.addEventListener('click', ()=>{ if(modal) modal.classList.add('hidden'); if(addForm) addForm.reset(); if(otherLabel) otherLabel.classList.add('hidden'); const fb = document.getElementById('addFormFeedback'); if(fb){ fb.style.display='none'; fb.textContent=''; } });
 			const setorEl = document.getElementById('setor');
-			if(setorEl) setorEl.addEventListener('change', ()=>{ if(setorEl.value==='outro' && otherLabel) otherLabel.classList.remove('hidden'); else if(otherLabel) otherLabel.classList.add('hidden'); });
+			// inicializa visibilidade do campo 'other' de acordo com o valor atual da CATEGORIA (issueType)
+			if(issueTypeEl){
+				if(issueTypeEl.value === 'outro'){ if(otherLabel) otherLabel.classList.remove('hidden'); } else { if(otherLabel) otherLabel.classList.add('hidden'); }
+				issueTypeEl.addEventListener('change', ()=>{ if(issueTypeEl.value==='outro' && otherLabel) otherLabel.classList.remove('hidden'); else if(otherLabel) otherLabel.classList.add('hidden'); });
+			}
 
 			if(addForm) addForm.addEventListener('submit', (e)=>{
 				e.preventDefault();
 				const fb = document.getElementById('addFormFeedback'); if(fb){ fb.style.display='none'; fb.textContent=''; }
 				let solicitante = (document.getElementById('author') && document.getElementById('author').value.trim()) || currentUser();
 				const setor = setorEl ? setorEl.value : '';
-				const categoriaRaw = document.getElementById('issueType') ? document.getElementById('issueType').value : '';
+				const categoriaRaw = issueTypeEl ? issueTypeEl.value : '';
 				const categoria = categoriaRaw ? (categoriaRaw.charAt(0).toUpperCase() + categoriaRaw.slice(1)) : '';
-				const descricao = (setor === 'outro') ? (document.getElementById('otherText').value.trim() || '') : (document.getElementById('description') ? document.getElementById('description').value.trim() : '');
+				const descricao = (categoriaRaw === 'outro') ? (document.getElementById('otherText') ? document.getElementById('otherText').value.trim() : '') : (document.getElementById('description') ? document.getElementById('description').value.trim() : '');
 				const prioridade = document.getElementById('priority') ? document.getElementById('priority').value : 'normal';
 
 				if(!setor){ if(fb){ fb.textContent='Por favor selecione o setor.'; fb.style.display='block'; } else alert('Por favor selecione o setor.'); return; }
 				if(!solicitante){ if(fb){ fb.textContent='Por favor informe seu nome.'; fb.style.display='block'; document.getElementById('author') && document.getElementById('author').focus(); } else { solicitante = prompt('Informe seu nome:') || 'Usuário'; } return; }
+				// se categoria for 'outro', exige-se preenchimento do campo otherText
+				if(categoriaRaw === 'outro'){
+					const otherTextEl = document.getElementById('otherText');
+					if(!otherTextEl || !otherTextEl.value.trim()){
+						if(fb){ fb.textContent='Por favor descreva o problema em "Descreva (Outro)".'; fb.style.display='block'; otherTextEl && otherTextEl.focus(); } else alert('Por favor descreva o problema.');
+						return;
+					}
+				}
 				// save name for auto-fill later
 				localStorage.setItem('ompi_user_name', solicitante);
 				// also save as ompi_current_user if present (login stores it)
