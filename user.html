@@ -4,7 +4,7 @@
 <head>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width,initial-scale=1" />
-	<title>OMPI — Abertura Rápida</title>
+	<title>Tec&Nova — Abertura Rápida</title>
 	<style>
 		/* Consolidated industrial style (from user.css + site) */
 		:root{ --bg:#0f1720; --panel:#0f1728; --muted:#9aa4b2; --accent:#4f7bd6; --accent-2:#f28a30; --card:#0b1220; --ok:#2aa56a; }
@@ -49,7 +49,7 @@
 	<main class="user-wrap">
 		<header class="user-header">
 			<div class="brand">
-				<img src="Logo.svg" alt="Logo OMPI" style="width: 44px; height: 44px; border-radius: 8px;">
+				<img src="Logo.svg" alt="Logo Tec&Nova" style="width: 44px; height: 44px; border-radius: 8px;">
 				<div>
 					<h1>OMPI</h1>
 					<p style="margin:0;color:var(--muted);font-size:13px">Abertura Rápida de Chamados</p>
@@ -133,6 +133,8 @@
 	<script>
 		// Consolidated JS for user page
 		(function(){
+			// simple access control: require login
+			if(!localStorage.getItem('ompi_current_user')){ location.href = 'index.html'; return; }
 			const STORAGE_KEY = 'ompi_chamados_db';
 			// quick-actions removidas: não há mais botões rápidos
 			const modal = document.getElementById('addModal');
@@ -199,6 +201,7 @@
 			// render user's chamados filtered by solicitante
 			function renderCards(){
 				const me = currentUser(); const arr = load();
+				console.debug('renderCards: currentUser=', me, 'items=', arr);
 				const mine = me ? arr.filter(x=>String(x.solicitante||'').toLowerCase() === String(me).toLowerCase()) : arr;
 				cardsRoot.innerHTML = '';
 				if(!mine.length){ cardsRoot.innerHTML = '<div style="color:var(--muted)">Nenhum chamado encontrado.</div>'; return; }
@@ -207,7 +210,7 @@
 					const shortId = it.id.toString().slice(-6);
 					const statusClass = it.status === 'doing' ? 'doing' : (it.status === 'done' ? 'done' : 'pending');
 					const statusLabel = it.status === 'doing' ? 'Em Andamento' : (it.status === 'done' ? 'Concluído' : 'Pendente');
-					c.innerHTML = `<div class="id">#${shortId}</div><div style="font-weight:600;margin-top:6px">${escapeHtml(it.categoria||'')}</div><div style="margin-top:8px"><span class="badge ${statusClass}">${statusLabel}</span></div><div class="meta">Setor: ${escapeHtml(it.setor||'')} • Prioridade: ${escapeHtml(it.prioridade||'')}</div>`;
+					c.innerHTML = `<div class="id">#${shortId}</div><div style="font-weight:600;margin-top:6px">${escapeHtml(it.categoria||'')}</div><div style="margin-top:8px"><span class="badge ${statusClass}">${statusLabel}</span></div><div style="margin-top:6px;font-size:12px;color:#cfe3ff">status (raw): ${escapeHtml(it.status||'')}</div><div class="meta">Setor: ${escapeHtml(it.setor||'')}  Prioridade: ${escapeHtml(it.prioridade||'')}</div>`;
 					cardsRoot.appendChild(c);
 				});
 			}

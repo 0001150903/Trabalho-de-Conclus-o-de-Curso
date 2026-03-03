@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>OMPI — Dashboard Técnico</title>
+  <title>Tec&Nova — Dashboard Técnico</title>
   <style>
     :root{ --bg:#071023; --panel:#08182a; --muted:#9aa4b2; --accent:#2e7be6; --ok:#2aa56a }
     html,body{height:100%;margin:0;font-family:Inter,Segoe UI,system-ui,Arial;background:linear-gradient(180deg,#03121a,#071422);color:#e6eef8}
@@ -54,9 +54,9 @@
   <main class="user-wrap">
     <header class="user-header">
       <div class="brand">
-        <img src="Logo.svg" alt="Logo OMPI" style="width: 40px; height: 40px; border-radius: 16px;">
+        <img src="Logo.svg" alt="Logo Tec&Nova" style="width: 40px; height: 40px; border-radius: 16px;">
         <div>
-          <h1 id="loginTitle" style="margin:0">OMPI</h1>
+          <h1 id="loginTitle" style="margin:0">Tec&Nova</h1>
           <p style="margin:0;color:#9fb2d9">Dashboard Técnico</p>
         </div>
       </div>
@@ -68,9 +68,9 @@
     </header>
 
     <section class="kanban-area">
-      <div class="kanban-column" data-status="todo">
+  <div class="kanban-column" data-status="pending">
         <h3>Pendente</h3>
-        <div class="kanban-list" data-status="todo"></div>
+  <div class="kanban-list" data-status="pending"></div>
       </div>
 
       <div class="kanban-column" data-status="doing">
@@ -140,6 +140,8 @@
 
   <script>
     (function(){
+      // simple access control: require login
+      if(!localStorage.getItem('ompi_current_user')){ location.href = 'index.html'; return; }
       const STORAGE_KEY = 'ompi_chamados_db';
       const lists = document.querySelectorAll('.kanban-list');
       const openBtn = document.getElementById('openAddBtn');
@@ -178,7 +180,7 @@
           categoria: tipo.charAt(0).toUpperCase()+tipo.slice(1), 
           descricao: descricao, 
           prioridade: prioridade, 
-          status: 'todo', 
+          status: 'pending', 
           data_abertura: new Date().toISOString(), 
           data_inicio: null, 
           data_conclusao: null 
@@ -205,7 +207,8 @@
           <strong>${escapeHtml(item.categoria)}</strong>
           <span style="font-size:10px; float:right; ${prioStyle}">${item.prioridade.toUpperCase()}</span>
           <div style="margin-top:6px; font-size:13px">${escapeHtml(item.descricao)}</div>
-          <div class="meta">${escapeHtml(item.solicitante)} • ${escapeHtml(item.setor)}</div>
+          <div style="margin-top:6px;font-size:12px;color:#cfe3ff">status (raw): ${escapeHtml(item.status||'')}</div>
+          <div class="meta">${escapeHtml(item.solicitante)}  ${escapeHtml(item.setor)}</div>
           <div class="timestamps">
             <small>Abertura: ${new Date(item.data_abertura).toLocaleString()}</small><br/>
             <small>Início: ${item.data_inicio ? new Date(item.data_inicio).toLocaleString() : '-'}</small><br/>
@@ -216,8 +219,9 @@
 
       function render(){ 
         lists.forEach(l=> l.innerHTML=''); 
+        console.debug('render dashboard: data=', data);
         data.forEach(item=>{
-          let target = item.status === 'doing' ? 'doing' : (item.status === 'done' ? 'done' : 'todo');
+    let target = item.status === 'doing' ? 'doing' : (item.status === 'done' ? 'done' : 'pending');
           const container = document.querySelector(`.kanban-list[data-status="${target}"]`);
           if(container) container.appendChild(createCard(item));
         }); 
