@@ -63,6 +63,7 @@
 
       <div class="controls">
         <button id="openAddBtn" class="btn">Adicionar chamado</button>
+        <button id="exportCsvBtn" class="btn ghost">Exportar CSV</button>
         <button id="resetBtn" class="btn ghost">Resetar Sistema</button>
       </div>
     </header>
@@ -144,29 +145,53 @@
       // simple access control: require login
       if(!localStorage.getItem('ompi_current_user')){ location.href = 'index.html'; return; }
       const STORAGE_KEY = 'ompi_chamados_db';
-      const lists = document.querySelectorAll('.kanban-list');
-      const openBtn = document.getElementById('openAddBtn');
-      const modal = document.getElementById('addModal');
-      const cancelBtn = document.getElementById('cancelAdd');
-      const addForm = document.getElementById('addForm');
-      const resetBtn = document.getElementById('resetBtn');
+  const lists = document.querySelectorAll('.kanban-list');
+  const openBtn = document.getElementById('openAddBtn');
+  const modal = document.getElementById('addModal');
+  const cancelBtn = document.getElementById('cancelAdd');
+  const addForm = document.getElementById('addForm');
+  const resetBtn = document.getElementById('resetBtn');
+  const issueTypeEl = document.getElementById('issueType');
+  const otherLabel = document.getElementById('otherLabel');
 
-      function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+  function currentUser(){ return localStorage.getItem('ompi_current_user') || localStorage.getItem('ompi_user_name') || ''; }
       function load(){ try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): []; }catch(e){ return []; } }
       function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
 
       let data = load();
 
-      if(openBtn) openBtn.addEventListener('click', ()=> modal && modal.classList.remove('hidden'));
-      if(cancelBtn) cancelBtn.addEventListener('click', ()=> modal && modal.classList.add('hidden'));
-
-      const issueTypeEl = document.getElementById('issueType');
-      const otherLabel = document.getElementById('otherLabel');
+      if(openBtn) openBtn.addEventListener('click', ()=>{
+        // reset form state when opening to ensure listeners and validation start clean
+  if(addForm) addForm.reset();
+  if(otherLabel) otherLabel.classList.add('hidden');
+  const otherTextEl = document.getElementById('otherText'); if(otherTextEl) otherTextEl.required = false;
+  const fb = document.getElementById('addFormFeedback'); if(fb){ fb.classList.add('hidden'); fb.textContent=''; }
+  const authorEl = document.getElementById('author'); if(authorEl) authorEl.value = currentUser();
+        if(modal) modal.classList.remove('hidden');
+      });
+      if(cancelBtn) cancelBtn.addEventListener('click', ()=>{
+  if(modal) modal.classList.add('hidden');
+  if(addForm) addForm.reset();
+  if(otherLabel) otherLabel.classList.add('hidden');
+  const otherTextEl2 = document.getElementById('otherText'); if(otherTextEl2) otherTextEl2.required = false; otherTextEl2 && (otherTextEl2.value='');
+  const fb = document.getElementById('addFormFeedback'); if(fb){ fb.classList.add('hidden'); fb.textContent=''; }
+      });
 
       // inicializa visibilidade do campo 'other' de acordo com o valor atual da categoria
       if(issueTypeEl){
-        if(issueTypeEl.value === 'outro'){ if(otherLabel) otherLabel.classList.remove('hidden'); } else { if(otherLabel) otherLabel.classList.add('hidden'); }
-        issueTypeEl.addEventListener('change', ()=>{ if(issueTypeEl.value==='outro' && otherLabel) otherLabel.classList.remove('hidden'); else if(otherLabel) otherLabel.classList.add('hidden'); });
+        const otherTextEl_init = document.getElementById('otherText');
+        if(issueTypeEl.value === 'outro'){ if(otherLabel) otherLabel.classList.remove('hidden'); if(otherTextEl_init) otherTextEl_init.required = true; } else { if(otherLabel) otherLabel.classList.add('hidden'); if(otherTextEl_init) otherTextEl_init.required = false; }
+        issueTypeEl.addEventListener('change', ()=>{
+          const otherTextEl = document.getElementById('otherText');
+          if(issueTypeEl.value==='outro'){
+            if(otherLabel) otherLabel.classList.remove('hidden');
+            if(otherTextEl) otherTextEl.required = true;
+          } else {
+            if(otherLabel) otherLabel.classList.add('hidden');
+            if(otherTextEl) { otherTextEl.required = false; otherTextEl.value = ''; }
+          }
+        });
       }
 
       if(addForm) addForm.addEventListener('submit', (e)=>{
