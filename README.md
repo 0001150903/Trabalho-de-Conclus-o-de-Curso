@@ -61,8 +61,8 @@ Este projeto está licenciado sob a Licença Apache 2.0 - veja o arquivo [LICENS
 
 * ** Maiderson Junio de Souza Oliveira ** - *Desenvolvedor Full Stack*
 * ** Lorena Santos Figueredo ** - *Analista de QA*
-* ** Raissa Ellen de Moraes ** - *Analista de SQL*
-* ** Matheus Henrique Teixeira Munis ** - *Especialista em UX/UI e Design Gráfico*
+* ** Raissa Ellen de Moraes ** - *Analista de Processos SLA*
+* ** Matheus Henrique Teixeira Munis ** - *Especialista em UX/UI e Designer Gráfico*
 * ** Erick Gonçalves Amaral ** - *Arquiteto de Banco de Dados*
 * ** Gizele Telheiro dos Santos ** - *Engenheira de Software*
 ---
