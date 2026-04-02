@@ -1,4 +1,4 @@
-# TI Eficaz: OMPI Fast-Track 🏭💻
+# TEC&NOVA🏭💻
 
 > Solução Web Intranet para Gestão de Chamados de TI de Baixa Complexidade.
 
